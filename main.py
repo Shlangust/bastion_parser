@@ -4,6 +4,7 @@ from time import sleep
 from openpyxl import load_workbook
 import pandas as pd
 from bs4 import BeautifulSoup as bs
+from pandas.io.pytables import dropna_doc
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.expected_conditions import none_of
@@ -16,6 +17,7 @@ def get_page():
     WebDriverWait(driver, 10).until(
         EC.presence_of_element_located((By.CLASS_NAME, "stretched-link"))
     )
+    print(driver.page_source)
     with open("index.html", "w", encoding='utf-8') as file:
         file.write(driver.page_source)
 
@@ -71,7 +73,11 @@ def test(file):
                     if price != None:
                         price = price.text
                     print(name, price,product_link)
-                    characteristics_raw = soup.find('div', class_='row align-items-start').find_all('li')
+                    characteristics_div = soup.find('div', class_='row align-items-start')
+                    characteristics_raw = characteristics_div.find_all('li') or characteristics_div.find('p')
+                    # characteristics_raw = soup.find('div', class_='row align-items-start').find_all('li')
+                    # if characteristics_raw == []:
+                    #     characteristics_raw = soup.find('div', class_='row align-items-start').find('p')
                     characteristics = []
                     for i in characteristics_raw:
                         characteristics.append(i.text)
@@ -83,10 +89,7 @@ def test(file):
                         "ссылка на товар": product_link
                     })
         except:
-            # try:
-            #     WebDriverWait(driver, 10).until(
-            #         EC.presence_of_element_located((By.CLASS_NAME, "link-unset"))
-            #     )
+
                 source = driver.page_source
                 soup = bs(source, 'lxml')
                 product = soup.find_all('a', class_='link-unset')
@@ -106,8 +109,9 @@ def test(file):
                         name = name.text
                     if price != None:
                         price = price.text
-
-                    characteristics_raw = soup.find('div', class_='row align-items-start').find_all('li')
+                    characteristics_div = soup.find('div', class_='row align-items-start')
+                    characteristics_raw = characteristics_div.find_all('li') or characteristics_div.find('p')
+                    # characteristics_raw = soup.find('div', class_='row align-items-start').find_all('li')
                     characteristics = []
                     for i in characteristics_raw:
                         characteristics.append(i.text)
@@ -144,10 +148,10 @@ def wait_until(hour, minute):
 
 def main():
     while True:
-        wait_until(18, 5)
+        wait_until(14, 42)
         get_page()
         test('index.html')
-        time.sleep(60)  # Ждёт минуту, чтобы не запустилось снова в ту же минуту
+        time.sleep(60)
 
 if __name__ == "__main__":
     main()
